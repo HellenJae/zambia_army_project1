@@ -1,0 +1,189 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block content %}
+<div class="chat-container">
+  <h2>Send Message</h2>
+
+  <div class="chat-box">
+    <!-- Optional: display previous messages here as chat bubbles -->
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="chat-form" id="chatForm" action="{% url 'messaging:conversation_detail' selected_user.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="voice_note" id="voiceNoteInput">
+
+    <!-- Recipient MAN number -->
+    <input type="text" name="man_number" placeholder="Recipient MAN Number..." class="recipient-input" required>
+
+    <!-- Message area -->
+    <textarea name="message" placeholder="Type your message..." class="message-input"></textarea>
+
+    <!-- Attachment & Voice Row -->
+    <div class="attachment-row">
+      <!-- + Button -->
+      <div class="attachment-menu">
+        <button type="button" class="attachment-btn" id="attachmentBtn">+</button>
+        <div class="attachment-options" id="attachmentOptions">
+          <label>
+            📄 Document
+            <input type="file" name="attachment_doc" accept=".pdf,.doc,.docx,.xls,.xlsx" hidden>
+          </label>
+          <label>
+            🖼 Photos
+            <input type="file" name="attachment_photo" accept="image/*" hidden>
+          </label>
+          <label>
+            🎵 Audio
+            <input type="file" name="attachment_audio" accept="audio/*" hidden>
+          </label>
+        </div>
+      </div>
+
+      <!-- Voice Note -->
+      <button type="button" class="voice-btn" id="recordBtn">🎤</button>
+      <audio id="voicePlayback" controls style="display:none;"></audio>
+
+      <!-- Send Button -->
+      <button type="submit" class="send-btn">➡️</button>
+    </div>
+
+    <p id="recordingStatus" style="color:red; font-size:14px;"></p>
+
+    {% if error %}
+      <p style="color:red;">{{ error }}</p>
+    {% endif %}
+  </form>
+</div>
+
+<style>
+/* Keep all your original CSS */
+.chat-container {
+    width: 500px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    background: #f9f9f9;
+}
+
+.recipient-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.message-input {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.attachment-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.attachment-btn, .voice-btn, .send-btn {
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 50%;
+    border: none;
+}
+
+.attachment-btn { background: #e4e6eb; }
+.voice-btn { background: #e4e6eb; }
+.send-btn { background: #fff;color:white; }
+
+.attachment-menu {
+    position: relative;
+}
+
+.attachment-options {
+    display: none;
+    position: absolute;
+    top: -120px;
+    left: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 5px;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.attachment-options label {
+    display: block;
+    cursor: pointer;
+    padding: 5px;
+}
+</style>
+
+<script>
+/* Attachment dropdown */
+const attachmentBtn = document.getElementById('attachmentBtn');
+const attachmentOptions = document.getElementById('attachmentOptions');
+attachmentBtn.addEventListener('click', () => {
+    attachmentOptions.style.display = attachmentOptions.style.display === 'flex' ? 'none' : 'flex';
+});
+
+/* Voice recording (live sending) */
+const chatForm = document.getElementById('chatForm');
+let mediaRecorder;
+let audioChunks = [];
+const recordBtn = document.getElementById('recordBtn');
+const voicePlayback = document.getElementById('voicePlayback');
+const recordingStatus = document.getElementById('recordingStatus');
+
+recordBtn.addEventListener('click', async () => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data));
+        mediaRecorder.addEventListener("stop", () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            // Playback
+            voicePlayback.src = URL.createObjectURL(audioBlob);
+            voicePlayback.style.display = 'block';
+
+            // Send live
+            const formData = new FormData(chatForm);
+            formData.append('voice_note', audioBlob, 'voice_note.webm');
+
+            fetch(chatForm.action, { method: 'POST', body: formData })
+            .then(res => {
+                if (res.ok) {
+                    recordingStatus.textContent = "Voice note sent!";
+                    chatForm.reset();
+                    voicePlayback.style.display = 'none';
+                } else {
+                    recordingStatus.textContent = "Failed to send voice note.";
+                }
+            }).catch(() => {
+                recordingStatus.textContent = "Error sending voice note.";
+            });
+        });
+
+        mediaRecorder.start();
+        recordingStatus.textContent = "Recording...";
+        recordBtn.textContent = "⏹️";
+    } else if (mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        recordBtn.textContent = "🎤";
+    }
+});
+</script>
+{% endblock %}

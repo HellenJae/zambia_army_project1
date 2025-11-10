@@ -1,0 +1,198 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block content %}
+
+<style>
+/* General Styles */
+.mission-container { max-width: 900px; margin: auto; padding-bottom: 50px; }
+.card { border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border: none; margin-bottom: 25px; }
+.card-header { font-weight: 600; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 18px 20px; }
+.card-header:hover { background-color: #006b3d; color: white; }
+.card-body { padding: 25px; display: none; animation: fadeIn 0.3s ease-in-out; background-color: #f9f9f9; border-top: 1px solid #e0e0e0; }
+.list-group-item { border-radius: 12px; margin-bottom: 12px; transition: 0.3s; background: #f9f9f9; border-left: 5px solid #004225; padding: 18px 20px; }
+.list-group-item:hover { background-color: #e8f5e9; transform: translateY(-2px); }
+.list-group-item h5 { font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.list-group-item p { margin-bottom: 8px; color: #333; line-height: 1.5; }
+.assigned-users span { display: block; margin-bottom: 3px; } /* stacked users */
+.btn-success { background-color: #004225; border-color: #004225; font-weight: 600; padding: 10px 25px; transition: 0.3s; }
+.btn-success:hover { background-color: #006b3d; border-color: #006b3d; }
+.btn-complete { background-color: #006b3d; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+.btn-complete:hover { background-color: #004225; }
+
+/* Floating label inputs */
+.floating-input { position: relative; margin-bottom: 20px; }
+.floating-input input, .floating-input textarea, .floating-input select { width: 100%; border: 1px solid #ccc; border-radius: 10px; padding: 16px 12px 12px 12px; font-size: 0.95rem; outline: none; transition: 0.3s; }
+.floating-input textarea { min-height: 120px; resize: vertical; }
+.floating-input label { position: absolute; top: 16px; left: 12px; font-size: 0.95rem; color: #666; transition: 0.2s; pointer-events: none; background: #f9f9f9; padding: 0 4px; }
+.floating-input input:focus + label, .floating-input input:not(:placeholder-shown) + label, .floating-input textarea:focus + label, .floating-input textarea:not(:placeholder-shown) + label, .floating-input select:focus + label, .floating-input select:not(:placeholder-shown) + label { top: -8px; left: 10px; font-size: 0.8rem; color: #004225; font-weight: 600; }
+
+/* Multi-select with tags */
+.multi-select { position: relative; user-select: none; margin-bottom: 20px; }
+.multi-select .select-box { display: flex; align-items: center; flex-wrap: wrap; min-height: 50px; border: 1px solid #ccc; border-radius: 10px; padding: 6px 10px; background: white; cursor: pointer; }
+.multi-select .select-box span.placeholder { color: #666; margin-right: 5px; }
+.multi-select .select-box .tag { background: #004225; color: white; padding: 5px 10px; border-radius: 20px; margin: 3px 5px 3px 0; display: flex; align-items: center; font-size: 0.85rem; }
+.multi-select .select-box .tag .remove-tag { margin-left: 5px; cursor: pointer; font-weight: bold; }
+.multi-select .options-container { position: absolute; top: 105%; left: 0; width: 100%; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 10px; background: white; display: none; z-index: 100; }
+.multi-select .option { padding: 10px 14px; cursor: pointer; display: flex; align-items: center; }
+.multi-select .option:hover { background-color: #f1f1f1; }
+.multi-select .option input { margin-right: 10px; }
+</style>
+
+<div class="mission-container">
+    <div class="mission-header mb-4">
+        <h2 class="text-success">Active Missions</h2>
+        <p>View and manage Zambia Army missions below.</p>
+    </div>
+
+    {% if can_add %}
+    <div class="card">
+        <div class="card-header bg-success text-white" onclick="toggleAddMission()">
+            Add a New Mission
+            <span id="toggleArrow" style="font-size: 18px;">▼</span>
+        </div>
+        <div class="card-body" id="addMissionBody">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="floating-input">
+                    <input type="text" id="title" name="title" placeholder=" " required>
+                    <label for="title">Mission Title</label>
+                </div>
+                <div class="floating-input">
+                    <textarea id="description" name="description" placeholder=" " required></textarea>
+                    <label for="description">Mission Description</label>
+                </div>
+
+                <div class="multi-select" id="multiSelect">
+                    <div class="select-box"><span class="placeholder">Select Users...</span></div>
+                    <div class="options-container">
+                        {% for u in users %}
+                            <div class="option">
+                                <input type="checkbox" value="{{ u.id }}" name="assigned_to">
+                                {{ u.number }} - {{ u.first_name }} {{ u.last_name }} ({{ u.role|title }})
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="floating-input">
+                    <select id="status" name="status">
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <label>Status</label>
+                </div>
+                <div class="floating-input">
+                    <input type="date" id="due_date" name="due_date">
+                    <label for="due_date">Due Date (optional)</label>
+                </div>
+
+                <button type="submit" class="btn btn-success">Add Mission</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <h4 class="mb-3">All Missions</h4>
+    {% if missions %}
+        <ul class="list-group">
+            {% for mission in missions %}
+                <li class="list-group-item">
+                    <h5>
+                        {{ mission.title }}
+                        <span class="badge badge-info">{{ mission.status|title }}</span>
+                    </h5>
+                    <p>{{ mission.description }}</p>
+                    <p class="assigned-users"><strong>Assigned to:</strong>
+                        {% for user in mission.assigned_to.all %}
+                            <span>{{ user.man_number }} - {{ user.first_name }} {{ user.last_name }} ({{ user.role|title }})</span>
+                        {% empty %}
+                            <span>None</span>
+                        {% endfor %}
+                    </p>
+                    {% if mission.due_date %}
+                        <p><small class="text-muted">Due: {{ mission.due_date|date:"M d, Y" }}</small></p>
+                    {% endif %}
+                    <small class="text-muted">Created on {{ mission.created_at|date:"M d, Y H:i" }}</small>
+
+                    {% if mission.status != "completed" %}
+                    <form method="POST" action="{% url 'missions:mark_completed' mission.id %}" style="margin-top:10px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-complete">Mark as Completed</button>
+                    </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="no-mission">No missions available.</p>
+    {% endif %}
+</div>
+
+<script>
+function toggleAddMission() {
+    const body = document.getElementById('addMissionBody');
+    const arrow = document.getElementById('toggleArrow');
+    if (body.style.display === 'block') {
+        body.style.display = 'none';
+        arrow.textContent = '▼';
+    } else {
+        body.style.display = 'block';
+        arrow.textContent = '▲';
+    }
+}
+
+// Multi-select with proper form submission
+const multiSelect = document.getElementById('multiSelect');
+const selectBox = multiSelect.querySelector('.select-box');
+const optionsContainer = multiSelect.querySelector('.options-container');
+
+selectBox.addEventListener('click', () => {
+    optionsContainer.style.display = optionsContainer.style.display === 'block' ? 'none' : 'block';
+});
+
+optionsContainer.querySelectorAll('.option input').forEach((checkbox) => {
+    checkbox.addEventListener('change', function() {
+        const optionText = this.parentElement.textContent.trim();
+        const existingTag = selectBox.querySelector(`.tag[data-id="${this.value}"]`);
+
+        if (this.checked && !existingTag) {
+            const tag = document.createElement('span');
+            tag.classList.add('tag');
+            tag.setAttribute('data-id', this.value);
+            tag.textContent = optionText;
+
+            const remove = document.createElement('span');
+            remove.classList.add('remove-tag');
+            remove.textContent = '×';
+            remove.addEventListener('click', () => {
+                tag.remove();
+                checkbox.checked = false;
+                const hiddenInput = this.closest('form').querySelector(`input[type="hidden"][value="${this.value}"]`);
+                if (hiddenInput) hiddenInput.remove();
+            });
+
+            tag.appendChild(remove);
+            selectBox.insertBefore(tag, selectBox.querySelector('.placeholder'));
+
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'assigned_to';
+            hiddenInput.value = this.value;
+            this.closest('form').appendChild(hiddenInput);
+
+        } else if (!this.checked && existingTag) {
+            existingTag.remove();
+            const hiddenInput = this.closest('form').querySelector(`input[type="hidden"][value="${this.value}"]`);
+            if (hiddenInput) hiddenInput.remove();
+        }
+    });
+});
+
+window.addEventListener('click', function(e) {
+    if (!multiSelect.contains(e.target)) {
+        optionsContainer.style.display = 'none';
+    }
+});
+</script>
+
+{% endblock %}

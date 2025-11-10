@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Zambia Army</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: url("{% static 'images/army_bg.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+        .container {
+            background: rgba(0,50,0,0.85);
+            padding: 35px 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.7);
+            text-align: center;
+            width: 350px;
+        }
+        .container img { width: 100px; margin-bottom: 15px; }
+        h1 { color: #FFD700; margin-bottom: 20px; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        select { color: #003300; background-color: #fff; }
+        .password-wrapper { position: relative; width: 100%; margin: 8px 0; }
+        .password-wrapper input { width: 100%; padding-right: 35px; }
+        .password-wrapper i { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; color: #003300; }
+        button {
+            padding: 10px 20px;
+            background-color: #FFD700;
+            color: #003300;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #e6c200; transform: scale(1.05); }
+        .error { color: #ff5555; font-size: 0.8rem; margin-top: -5px; margin-bottom: 5px; text-align: left; }
+        p.login-link { margin-top: 12px; font-size: 0.85rem; }
+        p.login-link a { color: #FFD700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{% static 'images/1.jpg' %}" alt="Zambia Army Logo">
+        <h1>Register</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Man Number -->
+            <div>
+                {{ form.man_number }}
+                {% if form.man_number.errors %}
+                    <div class="error">{{ form.man_number.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- First Name -->
+            <div>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <div class="error">{{ form.first_name.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Last Name -->
+            <div>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <div class="error">{{ form.last_name.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Unit Dropdown -->
+            <div>
+                {{ form.unit }}
+                {% if form.unit.errors %}
+                    <div class="error">{{ form.unit.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Role Dropdown -->
+            <div>
+                {{ form.role }}
+                {% if form.role.errors %}
+                    <div class="error">{{ form.role.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Password -->
+            <div class="password-wrapper">
+                {{ form.password1 }}
+                <i class="fa-solid fa-eye" onclick="togglePassword(this)"></i>
+                {% if form.password1.errors %}
+                    <div class="error">{{ form.password1.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="password-wrapper">
+                {{ form.password2 }}
+                <i class="fa-solid fa-eye" onclick="togglePassword(this)"></i>
+                {% if form.password2.errors %}
+                    <div class="error">{{ form.password2.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <p class="login-link">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+    </div>
+
+    <script>
+        function togglePassword(icon) {
+            const input = icon.previousElementSibling;
+            if(input.type === "password"){
+                input.type = "text";
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

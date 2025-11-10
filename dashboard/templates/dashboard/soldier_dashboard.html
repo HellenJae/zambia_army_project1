@@ -1,0 +1,41 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Soldier Dashboard{% endblock %}
+
+{% block sidebar %}
+<a href="{% url 'dashboard_soldier' %}">Home</a>
+<a href="{% url 'missions:list' %}">Missions</a>
+<a href="{% url 'announcements:list' %}">Announcements</a>
+<a href="{% url 'messaging:inbox' %}">Messages</a>
+<a href="{% url 'messaging:group_list' %}" class="btn btn-info">Groups</a>
+<a href="{% url 'messaging:create_group' %}">Create Group</a>
+
+
+{% endblock %}
+
+{% block content %}
+<h1>
+    Welcome,
+    {% if request.user.first_name and request.user.last_name %}
+        {{ request.user.first_name }} {{ request.user.last_name }}
+    {% else %}
+        {{ request.user.username }}
+    {% endif %}
+    ({{ request.user.role|title }})
+</h1>
+<div class="card">
+    
+    <p>View your missions, announcements, and messages.</p>
+</div>
+{% if request.user.role == 'soldier' %}
+<div class="card">
+    <h3>Quick Stats</h3>
+    <ul>
+        <li>Missions Assigned: {{ missions_count }}</li>
+        <li>Completed Missions: {{ completed_missions_count }}</li>
+        <li>Unread Messages: {{ unread_messages_count }}</li>
+    </ul>
+</div>
+{% endif %}
+
+{% endblock %}

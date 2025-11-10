@@ -1,0 +1,54 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block content %}
+<div class="card" style="max-width:600px; margin:auto; background-color:#f0f8f0; border:2px solid #004225;">
+    <h2 style="color:#004225; text-align:center; margin-bottom:20px;">Profile</h2>
+
+    {% if messages %}
+        <div style="margin-bottom:20px;">
+            {% for message in messages %}
+                <div style="padding:10px; border-radius:5px; background-color:#d4edda; color:#155724; border:1px solid #c3e6cb; margin-bottom:5px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'profile_update' %}">
+        {% csrf_token %}
+        <table class="profile-table" style="width:100%; border-collapse: collapse;">
+            <tr>
+                <th style="color:#004225; padding:10px; text-align:left;">Man Number:</th>
+                <td style="padding:10px;">{{ request.user.man_number }}</td>
+            </tr>
+            <tr>
+                <th style="color:#004225; padding:10px; text-align:left;">First Name:</th>
+                <td style="padding:10px;">
+                    <input type="text" name="first_name" value="{{ request.user.first_name }}" 
+                           style="width:100%; padding:8px; border:1px solid #004225; border-radius:5px;">
+                </td>
+            </tr>
+            <tr>
+                <th style="color:#004225; padding:10px; text-align:left;">Last Name:</th>
+                <td style="padding:10px;">
+                    <input type="text" name="last_name" value="{{ request.user.last_name }}" 
+                           style="width:100%; padding:8px; border:1px solid #004225; border-radius:5px;">
+                </td>
+            </tr>
+            <tr>
+                <th style="color:#004225; padding:10px; text-align:left;">Role:</th>
+                <td style="padding:10px;">
+                    <span class="role-label role-{{ request.user.role }}" style="font-weight:bold; padding:5px 10px; border-radius:5px;">
+                        {{ request.user.role|title }}
+                    </span>
+                </td>
+            </tr>
+        </table>
+        <div style="text-align:center; margin-top:20px;">
+            <button type="submit" style="background-color:#004225; color:#fff; font-weight:bold; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                Update Profile
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

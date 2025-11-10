@@ -1,0 +1,34 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Officer Dashboard{% endblock %}
+
+{% block sidebar %}
+<a href="{% url 'dashboard_officer' %}">Officer Home</a>
+<a href="{% url 'dashboard_soldier' %}">Soldiers under Command</a>
+<a href="{% url 'missions:list' %}">Missions</a>
+<a href="{% url 'announcements:list' %}">Announcements</a>
+<a href="{% url 'messaging:inbox' %}">Messages</a>
+<a href="{% url 'announcements:announcement_list' %}" class="btn btn-info">View Announcements</a>
+<a href="{% url 'messaging:group_list' %}" class="btn btn-info">Groups</a>
+<a href="{% url 'messaging:create_group' %}">Create Group</a>
+
+
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Officer Overview</h2>
+    <p>Track your soldiers, view missions, and announcements.</p>
+</div>
+{% if request.user.role == 'officer' %}
+<div class="card">
+    <h3>Quick Stats</h3>
+    <ul>
+        <li>Missions Assigned: {{ missions_count }}</li>
+        <li>Completed Missions: {{ completed_missions_count }}</li>
+        <li>Unread Messages: {{ unread_messages_count }}</li>
+    </ul>
+</div>
+{% endif %}
+
+{% endblock %}

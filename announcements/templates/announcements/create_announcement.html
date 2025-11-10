@@ -1,0 +1,178 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block content %}
+<div class="chat-container">
+  <h2>Create Announcement</h2>
+
+  <div class="chat-box">
+    <!-- Optional: display previous announcements here -->
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="chat-form" id="announcementForm">
+    {% csrf_token %}
+    <input type="hidden" name="voice_note" id="voiceNoteInput">
+
+    <!-- Title on top -->
+    <input type="text" name="title" placeholder="Title..." class="title-input" required>
+
+    <!-- Message area -->
+    <textarea name="message" placeholder="Type your announcement..." class="message-input" required></textarea>
+
+    <!-- Attachment & Voice Row -->
+    <div class="attachment-row">
+      <!-- + Button -->
+      <div class="attachment-menu">
+        <button type="button" class="attachment-btn" id="attachmentBtn">+</button>
+        <div class="attachment-options" id="attachmentOptions">
+          <label>
+            📄 Document
+            <input type="file" name="attachment_doc" accept=".pdf,.doc,.docx,.xls,.xlsx" hidden>
+          </label>
+          <label>
+            🖼 Photos
+            <input type="file" name="attachment_photo" accept="image/*" hidden>
+          </label>
+          <label>
+            🎵 Audio
+            <input type="file" name="attachment_audio" accept="audio/*" hidden>
+          </label>
+        </div>
+      </div>
+
+      <!-- Voice Note -->
+      <button type="button" class="voice-btn" id="recordBtn">🎤</button>
+      <audio id="voicePlayback" controls style="display:none;"></audio>
+
+      <!-- Send Button -->
+      <button type="submit" class="send-btn">➡️</button>
+    </div>
+
+    <p id="recordingStatus" style="color:red; font-size:14px;"></p>
+  </form>
+</div>
+
+<style>
+.chat-container {
+    width: 500px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    background: #f9f9f9;
+}
+
+.title-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.message-input {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.attachment-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.attachment-btn, .voice-btn, .send-btn {
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 50%;
+    border: none;
+}
+
+.attachment-btn { background: #e4e6eb; }
+.voice-btn { background: #e4e6eb; }
+.send-btn { background: #fff; color:white; }
+
+.attachment-menu {
+    position: relative;
+}
+
+.attachment-options {
+    display: none;
+    position: absolute;
+    top: -120px;
+    left: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 5px;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.attachment-options label {
+    display: block;
+    cursor: pointer;
+    padding: 5px;
+}
+</style>
+
+<script>
+/* Attachment dropdown */
+const attachmentBtn = document.getElementById('attachmentBtn');
+const attachmentOptions = document.getElementById('attachmentOptions');
+
+attachmentBtn.addEventListener('click', () => {
+    attachmentOptions.style.display = attachmentOptions.style.display === 'flex' ? 'none' : 'flex';
+});
+
+/* Voice recording */
+let mediaRecorder;
+let audioChunks = [];
+const recordBtn = document.getElementById('recordBtn');
+const voiceNoteInput = document.getElementById('voiceNoteInput');
+const recordingStatus = document.getElementById('recordingStatus');
+const voicePlayback = document.getElementById('voicePlayback');
+
+recordBtn.addEventListener('click', async () => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.addEventListener("dataavailable", event => audioChunks.push(event.data));
+        mediaRecorder.addEventListener("stop", () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            
+            // Show playback
+            const audioURL = URL.createObjectURL(audioBlob);
+            voicePlayback.src = audioURL;
+            voicePlayback.style.display = 'block';
+
+            // Convert to base64
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = function () {
+                voiceNoteInput.value = reader.result;
+            }
+
+            recordingStatus.textContent = "Recording finished!";
+        });
+
+        mediaRecorder.start();
+        recordingStatus.textContent = "Recording...";
+        recordBtn.textContent = "⏹️";
+    } else if (mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        recordBtn.textContent = "🎤";
+    }
+});
+</script>
+{% endblock %}

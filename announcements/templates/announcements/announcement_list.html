@@ -1,0 +1,98 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block content %}
+<h2 style="margin-bottom:20px;">Announcements</h2>
+
+{% if request.user.role in 'commander officer' %}
+    <a href="{% url 'announcements:create_announcement' %}" class="btn-primary">Make Announcement</a>
+{% endif %}
+
+{% if announcements %}
+    <ul class="announcement-list">
+    {% for ann in announcements %}
+        <li class="announcement-item">
+            <!-- Announcement title -->
+            <h3 class="announcement-title">{{ ann.title }}</h3>
+
+            <!-- Posted by -->
+            <div class="announcement-meta">
+                Posted by <strong>{{ ann.created_by.get_full_name|default:ann.created_by.username }}</strong>
+                <span class="announcement-role">({{ ann.created_by.role|title }})</span>
+                <span class="announcement-date">{{ ann.created_at|date:"SHORT_DATETIME_FORMAT" }}</span>
+            </div>
+
+            <!-- Message content -->
+            <p class="announcement-message">{{ ann.message }}</p>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No announcements yet</p>
+{% endif %}
+
+<style>
+/* Button */
+.btn-primary {
+    display: inline-block;
+    background-color: #003300;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 25px;
+    transition: background-color 0.3s;
+}
+.btn-primary:hover {
+    background-color: #004400;
+}
+
+/* Announcement list */
+.announcement-list {
+    list-style: none;
+    padding: 0;
+}
+
+/* Individual announcement card */
+.announcement-item {
+    background-color: #ffffff;
+    border-left: 5px solid #003300;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+}
+
+/* Title */
+.announcement-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #003300;
+}
+
+/* Meta info */
+.announcement-meta {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 10px;
+}
+.announcement-role {
+    font-style: italic;
+    color: #777;
+    margin-left: 5px;
+}
+.announcement-date {
+    float: right;
+    color: #999;
+    font-size: 0.8rem;
+}
+
+/* Message content */
+.announcement-message {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #333;
+    margin: 0;
+}
+</style>
+{% endblock %}

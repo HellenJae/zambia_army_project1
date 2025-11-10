@@ -1,0 +1,18 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block content %}
+<h2>Create Group</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <label for="group_name">Group Name:</label><br>
+    <input type="text" id="group_name" name="group_name" required><br><br>
+
+    <label>Select Members:</label><br>
+    {% for user in users %}
+        <input type="checkbox" name="members" value="{{ user.id }}"> {{ user.username }}<br>
+    {% endfor %}
+    <br>
+    <button type="submit">Create Group</button>
+</form>
+{% endblock %}

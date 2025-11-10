@@ -1,0 +1,10 @@
+# accounts/views.py
+from django.shortcuts import redirect
+from django.contrib.auth import logout
+
+def logout_view(request):
+    """
+    Logs out the current user and redirects to the login page.
+    """
+    logout(request)              # Ends the user session
+    return redirect('login')     # Redirects to the URL named 'login'

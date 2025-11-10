@@ -1,0 +1,30 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block sidebar %}
+<a href="{% url 'dashboard_admin' %}">Admin Home</a>
+<a href="{% url 'dashboard_officer' %}">Officers</a>
+<a href="{% url 'dashboard_soldier' %}">Soldiers</a>
+<a href="{% url 'missions:list' %}">Missions</a>
+<a href="{% url 'announcements:list' %}">Announcements</a>
+<a href="{% url 'inbox' %}">Messages</a>
+<a href="{% url 'messaging:group_list' %}" class="btn btn-info">Groups</a>
+
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Admin Overview</h2>
+    <p>Manage users, missions, announcements, and messages.</p>
+</div>
+<div class="card">
+    <h3>Quick Stats</h3>
+    <ul>
+        <li>Total Soldiers: 120</li>
+        <li>Total Officers: 25</li>
+        <li>Pending Missions: 5</li>
+        <li>Unread Messages: 3</li>
+    </ul>
+</div>
+{% endblock %}

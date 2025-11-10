@@ -1,0 +1,26 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block content %}
+<h1>
+    Welcome,
+    {% if request.user.first_name and request.user.last_name %}
+        {{ request.user.first_name }} {{ request.user.last_name }}
+    {% else %}
+        {{ request.user.username }}
+    {% endif %}
+    ({{ request.user.role|title }})
+</h1>
+{% if request.user.role == 'commander' %}
+<div class="card">
+    <h3>Quick Stats</h3>
+    <ul>
+        <li>Soldiers Assigned: {{ soldiers_count }}</li>
+        <li>Active Missions: {{ active_missions_count }}</li>
+        <li>Unread Messages: {{ unread_messages_count }}</li>
+    </ul>
+</div>
+{% endif %}
+
+
+<p>.</p>
+{% endblock %}

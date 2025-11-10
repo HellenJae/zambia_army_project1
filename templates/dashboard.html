@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="text-center mb-4">Welcome, {{ user.username }}</h2>
+
+<div class="row text-dark">
+  <div class="col-md-4">
+    <div class="card shadow">
+      <div class="card-body">
+        <h5>Missions</h5>
+        <p>Track assigned and ongoing missions.</p>
+        <a href="/missions/" class="btn btn-success btn-sm">View Missions</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow">
+      <div class="card-body">
+        <h5>Messages</h5>
+        <p>Send and receive secure communications.</p>
+        <a href="/messages/" class="btn btn-success btn-sm">Open Messages</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow">
+      <div class="card-body">
+        <h5>Announcements</h5>
+        <p>Read official orders and updates.</p>
+        <a href="/announcements/" class="btn btn-success btn-sm">View Announcements</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

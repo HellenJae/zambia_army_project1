@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zambia Army Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: url("{% static 'images/army_bg.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            background: rgba(0, 50, 0, 0.75);
+            padding: 50px 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+        }
+        .logo { width: 120px; margin-bottom: 20px; }
+        h1 { font-size: 2.5rem; color: #FFD700; margin-bottom: 20px; }
+        p { font-size: 1.2rem; }
+        a.login-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #FFD700;
+            color: #003300;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        a.login-btn:hover { background-color: #e6c200; transform: scale(1.05); }
+    </style>
+    <script>
+        // Redirect after 4 seconds
+        setTimeout(function(){
+            window.location.href = "{% url 'login' %}";  // or 'signup' if you have a signup page
+        }, 4000);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <img src="{% static 'images/1.jpg' %}" alt="Zambia Army Logo" class="logo">
+        <h1>Welcome to the Zambia Army System</h1>
+        <p>Secure access to your dashboard and operations.</p>
+        <p style="margin-top:20px; font-size:1rem;"></p>
+    </div>
+</body>
+</html>
+
+

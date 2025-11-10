@@ -1,0 +1,179 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block content %}
+{% load static get_item %}
+
+<style>
+html, body { height: 100%; margin: 0; font-family: Arial, sans-serif; background: #f0f2f5; }
+
+.messaging-container { display: flex; justify-content: center; align-items: center; height: 100%; }
+.messaging-app { width: 480px; max-width: 95%; height: 90vh; display: flex; flex-direction: column; border-radius: 10px; overflow: hidden; background: #f9f9f9; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+
+.inbox-view { flex: 1; overflow-y: auto; padding: 10px; }
+.search-container { display: flex; align-items: center; margin-bottom: 10px; }
+.search-container form { flex: 1; display: flex; gap: 5px; }
+.search-container input { padding: 10px 15px; border-radius: 25px; border: none; flex: 1; }
+.search-container button { padding: 10px 16px; border-radius: 25px; background: #004225; color: white; border: none; }
+.search-menu { margin-left: 5px; }
+.search-menu-btn { background: transparent; border: none; font-size: 20px; cursor: pointer; color: #004225; }
+.search-dropdown { display: none; position: absolute; right: 0; top: 35px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border-radius: 5px; z-index: 10; min-width: 180px; }
+.search-dropdown form button { background: #006b3d; border: none; padding: 10px 12px; color: white; width: 100%; text-align: left; cursor: pointer; border-radius: 5px; }
+.search-dropdown form button:hover { background: #008c4a; }
+
+.chat-list { background-color: #004225; padding: 10px; border-radius: 10px; color: white; margin-top: 10px; max-height: 70vh; overflow-y: auto; }
+.chat-item { padding: 8px; border-bottom: 1px solid #003311; position: relative; }
+.chat-item:last-child { border-bottom: none; }
+.chat-item a { color: white; text-decoration: none; font-weight: 600; display: block; }
+.chat-item.selected { background-color: #003311; border-radius: 5px; }
+.chat-item small { display: block; color: #ddd; font-size: 0.8rem; }
+
+.chat-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-header { background: #004225; color: white; padding: 12px; display: flex; align-items: center; justify-content: space-between; }
+.chat-header .back-btn { color: white; margin-right: 12px; text-decoration: none; }
+.chat-menu { position: relative; display: flex; align-items: center; }
+.chat-menu-btn { background: transparent; border: none; color: white; font-size: 20px; cursor: pointer; }
+.chat-dropdown { display: none; position: absolute; right: 0; top: 35px; background: white; color: black; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 10; min-width: 180px; }
+.chat-dropdown form button { background: #006b3d; border: none; padding: 10px 12px; color: white; width: 100%; text-align: left; cursor: pointer; border-radius: 5px; }
+.chat-dropdown form button:hover { background: #008c4a; }
+
+.chat-box { flex: 1; overflow-y: auto; padding: 10px; background: #e5ddd5; display: flex; flex-direction: column; scroll-behavior: smooth; }
+.message { max-width: 70%; margin-bottom: 10px; padding: 8px 12px; border-radius: 15px; word-wrap: break-word; position: relative; }
+.message input[type="checkbox"] { position: absolute; top: 5px; left: -25px; transform: scale(1.2); }
+.sent { background: #004225; color: white; margin-left: auto; }
+.received { background: #ffffff; margin-right: auto; }
+.message img, .message video { max-width: 250px; display: block; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; }
+.message audio { width: 100%; margin-top: 5px; }
+
+.chat-footer { background: #f9f9f9; padding: 8px; border-top: 1px solid #ccc; display: flex; flex-direction: column; position: sticky; bottom: 0; }
+.message-input { width: 100%; height: 60px; padding: 10px; border: none; border-radius: 10px; resize: none; background: white; }
+.chat-actions { display: flex; gap: 5px; align-items: center; margin-top: 5px; }
+.attachment-btn, .voice-btn, .send-btn { font-size: 20px; cursor: pointer; padding: 8px 12px; border-radius: 50%; border: none; }
+.attachment-btn, .voice-btn { background: #e4e6eb; }
+.send-btn { background: #004225; color: white; }
+</style>
+
+<div class="messaging-container">
+  <div class="messaging-app">
+
+    <!-- Inbox and search -->
+    <div class="inbox-view">
+        <div class="search-container">
+            <form method="get" action="{% url 'messaging:inbox' %}">
+                <input type="text" name="q" value="{{ query|default:'' }}" placeholder="🔍 Search user...">
+                <button type="submit">Search</button>
+            </form>
+            <div class="search-menu">
+                <button class="search-menu-btn" onclick="toggleSearchMenu()">⋯</button>
+                <div class="search-dropdown" id="searchDropdown">
+                    <form method="POST" action="{% url 'messaging:clear_all_messages' %}">
+                        {% csrf_token %}
+                        <button type="submit">🧹 Clear All Messages</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if query and no_search_results %}
+            <p style="color:red; margin:5px 0;">No such users found.</p>
+        {% endif %}
+
+        <!-- Always display all conversations -->
+        <div class="chat-list">
+            {% for user in users %}
+                <div class="chat-item {% if selected_user and selected_user.id == user.id %}selected{% endif %}">
+                    <a href="{% url 'messaging:conversation_detail' user.id %}">
+                        {{ user.first_name }} {{ user.last_name }}
+                        <small>({{ user.man_number }}) - {{ user.role|title }}</small>
+                    </a>
+                    {% if latest_messages %}
+                        <small>{{ latest_messages|get_item:user.id|truncatechars:50 }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Chat view / messages -->
+    {% if selected_user %}
+        <div class="chat-view">
+            <div class="chat-header">
+                <a href="{% url 'messaging:inbox' %}" class="back-btn">←</a>
+                <span>{{ selected_user.first_name }} {{ selected_user.last_name }}</span>
+
+                <div class="chat-menu">
+                    <button class="chat-menu-btn" onclick="toggleChatMenu()">⋯</button>
+                    <div class="chat-dropdown" id="chatDropdown">
+                        <form method="POST" action="{% url 'messaging:delete_conversation' selected_user.id %}">
+                            {% csrf_token %}
+                            <button type="submit">🗑️ Delete Conversation</button>
+                        </form>
+                        <form method="POST" action="{% url 'messaging:clear_conversation_messages' selected_user.id %}">
+                            {% csrf_token %}
+                            <button type="submit">🧹 Clear Messages</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'messaging:delete_selected_messages' selected_user.id %}">
+                {% csrf_token %}
+                <div class="chat-box" id="chatBox">
+                    {% for msg in messages %}
+                        <div class="message {% if msg.sender == request.user %}sent{% else %}received{% endif %}">
+                            <input type="checkbox" name="message_ids[]" value="{{ msg.id }}">
+                            {% if msg.content %}<p>{{ msg.content }}</p>{% endif %}
+                            {% if msg.attachment_photo %}<img src="{{ msg.attachment_photo.url }}" alt="Photo">{% endif %}
+                            {% if msg.attachment_video %}<video controls><source src="{{ msg.attachment_video.url }}"></video>{% endif %}
+                            {% if msg.attachment_audio %}<audio controls><source src="{{ msg.attachment_audio.url }}"></audio>{% endif %}
+                            {% if msg.voice_note %}<audio controls><source src="{{ msg.voice_note.url }}"></audio>{% endif %}
+                            <small>{{ msg.timestamp|date:"SHORT_DATETIME_FORMAT" }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" style="margin:10px auto; background:#006b3d; color:white; border:none; border-radius:5px; padding:8px 14px; display:block;">
+                    🗑️ Delete Selected
+                </button>
+            </form>
+
+            <form method="POST" enctype="multipart/form-data" class="chat-footer">
+                {% csrf_token %}
+                <textarea name="message" placeholder="Type a message..." class="message-input"></textarea>
+                <div class="chat-actions">
+                    <label class="attachment-btn" for="photoInput">📎</label>
+                    <input type="file" name="attachment_photo" id="photoInput" accept="image/*,video/*" hidden>
+                    <label class="voice-btn" id="recordBtn">🎤</label>
+                    <input type="file" name="voice_note" id="voiceNoteInput" hidden>
+                    <button type="submit" class="send-btn">➡️</button>
+                </div>
+                <p id="recordingStatus" style="color:red; font-size:14px;"></p>
+            </form>
+        </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+const chatBox=document.getElementById('chatBox');
+if(chatBox) chatBox.scrollTop=chatBox.scrollHeight;
+
+function toggleChatMenu(){
+  const menu=document.getElementById("chatDropdown");
+  menu.style.display=menu.style.display==="block"?"none":"block";
+}
+function toggleSearchMenu(){
+  const menu=document.getElementById("searchDropdown");
+  menu.style.display=menu.style.display==="block"?"none":"block";
+}
+window.onclick=function(e){
+  if(!e.target.matches('.chat-menu-btn')) {
+    const dropdown=document.getElementById("chatDropdown");
+    if(dropdown) dropdown.style.display="none";
+  }
+  if(!e.target.matches('.search-menu-btn')) {
+    const dropdown=document.getElementById("searchDropdown");
+    if(dropdown) dropdown.style.display="none";
+  }
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block content %}
+<h2>Chats</h2>
+<ul>
+{% for user in users %}
+  <li>
+    <a href="{% url 'conversation_detail' user.id %}">
+      {{ user.first_name }} {{ user.last_name }} ({{ user.man_number }}) - {{ user.role|title }}
+    </a>
+  </li>
+{% empty %}
+  <li>No conversations yet</li>
+{% endfor %}
+</ul>
+{% endblock %}
