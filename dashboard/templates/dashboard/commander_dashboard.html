@@ -1,6 +1,69 @@
 {% extends 'dashboard/base_dashboard.html' %}
 
 {% block content %}
+
+<style>
+/* ================= SECURITY ICON FLOAT ================= */
+
+.security-float {
+    position: fixed;
+    top: 500px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.security-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(0, 80, 0, 0.85);
+    border: 2px solid #90EE90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #90EE90;
+    font-size: 22px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.security-icon:hover {
+    transform: scale(1.1);
+}
+
+/* ALERT STATE */
+.security-icon.danger {
+    background: darkred;
+    border-color: red;
+    color: white;
+    animation: blink 1s infinite;
+}
+
+/* BLINK */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+</style>
+
+<!-- SECURITY ICON (FLOATING TOP RIGHT) -->
+{% if request.user.role == 'commander' or request.user.role == 'admin' %}
+
+<div class="security-float">
+    <a href="{% url 'security_center' %}"
+       class="security-icon {% if security_alert_count > 0 %}danger{% endif %}"
+       title="Security Center">
+
+        🔒
+
+    </a>
+</div>
+
+{% endif %}
+
+
+<!-- WELCOME -->
 <h1>
     Welcome,
     {% if request.user.first_name and request.user.last_name %}
@@ -10,7 +73,11 @@
     {% endif %}
     ({{ request.user.role|title }})
 </h1>
+
+
+<!-- QUICK STATS -->
 {% if request.user.role == 'commander' %}
+
 <div class="card">
     <h3>Quick Stats</h3>
     <ul>
@@ -19,8 +86,7 @@
         <li>Unread Messages: {{ unread_messages_count }}</li>
     </ul>
 </div>
+
 {% endif %}
 
-
-<p>.</p>
 {% endblock %}

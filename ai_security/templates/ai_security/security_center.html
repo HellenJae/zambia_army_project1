@@ -1,0 +1,37 @@
+<h1>Security Intelligence Center</h1>
+
+<hr>
+
+{% for alert in alerts %}
+
+<div style="
+    background: {% if alert.resolved %}rgba(0,80,0,0.3){% else %}rgba(139,0,0,0.2){% endif %};
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+">
+
+    <h3>{{ alert.activity_type }}</h3>
+
+    <p><b>User:</b> {{ alert.user }}</p>
+    <p><b>Description:</b> {{ alert.description }}</p>
+    <p><b>Risk:</b> {{ alert.risk_level }}</p>
+    <p><b>Detected:</b> {{ alert.detected_at }}</p>
+
+    {% if not alert.resolved %}
+        <form method="POST" action="{% url 'mark_alert_seen' alert.id %}">
+            {% csrf_token %}
+            <button type="submit"
+                style="background: green; color: white; padding: 5px 10px; border: none;">
+                Mark as Seen
+            </button>
+        </form>
+    {% else %}
+        <p style="color: lightgreen;">✔ Seen</p>
+    {% endif %}
+
+</div>
+
+<hr>
+
+{% endfor %}

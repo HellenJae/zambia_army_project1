@@ -37,6 +37,9 @@ urlpatterns = [
     path('missions/', include(('missions.urls', 'missions'), namespace='missions')),
     path('announcements/', include('announcements.urls', namespace='announcements')),
 
+    path('ai/', include('ai_security.urls')),
+    path('ai/', include('ai_summary.urls')),
+
     # Profile
     path('profile/', dashboard_views.profile_update, name='profile'),          # display profile page / GET
     path('profile/update/', dashboard_views.profile_update, name='profile_update'),  # handle POST

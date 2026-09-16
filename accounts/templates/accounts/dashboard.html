@@ -4,8 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - Zambia Army</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
+
         body {
             font-family: 'Roboto', sans-serif;
             background: url("{% static 'images/army_bg.jpg' %}") no-repeat center center fixed;
@@ -13,6 +19,7 @@
             color: #fff;
             margin: 0;
         }
+
         .header {
             background-color: rgba(0,50,0,0.85);
             padding: 15px;
@@ -20,17 +27,27 @@
             align-items: center;
             justify-content: space-between;
         }
+
         .header-left {
             display: flex;
             align-items: center;
         }
+
         .header img {
             width: 80px;
             margin-right: 15px;
         }
+
         .header h1 {
             color: #FFD700;
         }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .header a.logout {
             background-color: #FFD700;
             color: #003300;
@@ -39,14 +56,17 @@
             text-decoration: none;
             font-weight: bold;
         }
+
         .header a.logout:hover {
             background-color: #e6c200;
         }
+
         .welcome {
             text-align: center;
             margin-top: 15px;
             font-size: 1.1rem;
         }
+
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -54,6 +74,7 @@
             padding: 30px;
             gap: 20px;
         }
+
         .btn {
             background-color: #FFD700;
             color: #003300;
@@ -64,12 +85,13 @@
             font-size: 1.2rem;
             transition: 0.3s;
         }
+
         .btn:hover {
             background-color: #e6c200;
             transform: scale(1.05);
         }
 
-        /* Quick Stats Card */
+        /* QUICK STATS */
         .card {
             background-color: rgba(0,50,0,0.85);
             padding: 20px 25px;
@@ -79,80 +101,193 @@
             max-width: 300px;
             text-align: left;
         }
+
         .card h3 {
             color: #FFD700;
             margin-bottom: 10px;
         }
+
         .card ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
+
         .card ul li {
             margin-bottom: 8px;
             font-weight: 500;
         }
+
+        /* =========================
+           FLOATING AI ASSISTANT
+        ========================= */
+
+        .ai-float {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+
+            width: 60px;
+            height: 60px;
+
+            background: #1f8f3a;
+            color: white;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 24px;
+
+            text-decoration: none;
+
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+
+            z-index: 9999;
+
+            transition: 0.3s;
+        }
+
+        .ai-float:hover {
+            transform: scale(1.1);
+        }
+
+        /* danger mode */
+        .ai-float.danger {
+            background: darkred;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* badge */
+        .ai-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+
+            background: red;
+            color: white;
+
+            width: 20px;
+            height: 20px;
+
+            border-radius: 50%;
+
+            font-size: 12px;
+            font-weight: bold;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
     </style>
+
 </head>
+
 <body>
+
+    <!-- HEADER -->
     <div class="header">
+
         <div class="header-left">
             <img src="{% static 'images/1.jpg' %}" alt="Logo">
             <h1>Dashboard</h1>
         </div>
-        <a href="{% url 'logout' %}" class="logout">Logout</a>
+
+        <div class="header-right">
+
+            <a href="{% url 'logout' %}" class="logout">Logout</a>
+
+        </div>
+
     </div>
 
+    <!-- WELCOME -->
     <div class="welcome">
-        Welcome, {{ user.first_name }} {{ user.last_name }}! (Role: {{ user.role|title }})
+
+        Welcome,
+        {{ user.first_name }}
+        {{ user.last_name }}!
+        (Role: {{ user.role|title }})
+
     </div>
 
-    <!-- Quick Stats -->
+    <!-- QUICK STATS -->
     <div class="container">
+
         <div class="card">
             <h3>Quick Stats</h3>
             <ul>
+
                 {% if user.role == 'commander' %}
                     <li>Soldiers Assigned: {{ soldiers_count }}</li>
                     <li>Active Missions: {{ active_missions_count }}</li>
                     <li>Unread Messages: {{ unread_messages_count }}</li>
+
                 {% elif user.role == 'officer' %}
                     <li>Missions Assigned: {{ missions_count }}</li>
                     <li>Completed Missions: {{ completed_missions_count }}</li>
                     <li>Unread Messages: {{ unread_messages_count }}</li>
+
                 {% elif user.role == 'soldier' %}
                     <li>Missions Assigned: {{ missions_count }}</li>
                     <li>Completed Missions: {{ completed_missions_count }}</li>
                     <li>Unread Messages: {{ unread_messages_count }}</li>
                 {% endif %}
+
             </ul>
         </div>
+
     </div>
 
-    <!-- Action Buttons -->
+    <!-- ACTION BUTTONS -->
     <div class="container">
+
         {% if user.role == 'soldier' %}
             <a href="{% url 'missions:list' %}" class="btn">Missions</a>
             <a href="{% url 'inbox' %}" class="btn">Messaging</a>
             <a href="{% url 'announcements:list' %}" class="btn">Announcements</a>
+
         {% elif user.role == 'officer' %}
             <a href="{% url 'missions:list' %}" class="btn">Missions</a>
             <a href="{% url 'inbox' %}" class="btn">Messaging</a>
             <a href="{% url 'announcements:list' %}" class="btn">Announcements</a>
             <a href="{% url 'manage_soldiers' %}" class="btn">Manage Soldiers</a>
+
         {% elif user.role == 'commander' %}
             <a href="{% url 'missions:list' %}" class="btn">Missions</a>
             <a href="{% url 'inbox' %}" class="btn">Messaging</a>
             <a href="{% url 'announcements:list' %}" class="btn">Announcements</a>
             <a href="{% url 'manage_officers' %}" class="btn">Manage Officers</a>
+
         {% elif user.role == 'admin' %}
             <a href="{% url 'missions:list' %}" class="btn">Missions</a>
             <a href="{% url 'inbox' %}" class="btn">Messaging</a>
             <a href="{% url 'announcements:list' %}" class="btn">Announcements</a>
             <a href="{% url 'admin_panel' %}" class="btn">Admin Panel</a>
         {% endif %}
+
     </div>
+
+    <!-- FLOATING AI ASSISTANT -->
+    <a href="{% url 'ai_summary:panel' %}"
+       class="ai-float {% if security_alert_count > 0 %}danger{% endif %}">
+
+        <i class="fa-solid fa-robot"></i>
+
+        {% if security_alert_count > 0 %}
+            <span class="ai-badge">{{ security_alert_count }}</span>
+        {% endif %}
+
+    </a>
+
 </body>
 </html>
-
-

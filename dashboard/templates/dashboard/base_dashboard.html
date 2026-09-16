@@ -4,19 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Zambia Army Dashboard{% endblock %}</title>
+
     <link rel="stylesheet" href="{% static 'dashboard/css/style.css' %}">
+
+    <!-- FONT AWESOME (for AI icon) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
         /* Body & general */
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e6f2e6; /* Army light green background */
+            background-color: #e6f2e6;
             color: #222;
         }
 
         /* Header */
         header {
-            background-color: #004225; /* Dark army green */
+            background-color: #004225;
             color: #fff;
             padding: 10px 20px;
             display: flex;
@@ -39,12 +44,12 @@
         /* Sidebar */
         nav.sidebar {
             width: 200px;
-            background-color: #005f2f; /* Darker green */
+            background-color: #005f2f;
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            padding-top: 60px; /* space for header */
+            padding-top: 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -88,17 +93,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
 
-        /* Profile */
-        .profile-table th {
-            text-align: left;
-            padding-right: 15px;
-            color: #004225;
-        }
-
-        .profile-table td {
-            padding-bottom: 10px;
-        }
-
+        /* ROLE LABELS */
         .role-label {
             display: inline-block;
             padding: 5px 10px;
@@ -110,9 +105,63 @@
         .role-admin { background-color: #e74c3c; }
         .role-officer { background-color: #2980b9; }
         .role-soldier { background-color: #27ae60; }
+
+        /* ============================
+           AI ASSISTANT (NEW)
+        ============================ */
+
+        .ai-assistant {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: #1e7f1e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            z-index: 9999;
+            transition: 0.3s;
+        }
+
+        .ai-assistant:hover {
+            transform: scale(1.1);
+        }
+
+        /* RED ALERT MODE */
+        .ai-assistant.danger {
+            background: darkred;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* BADGE */
+        .ai-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            color: white;
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 50%;
+        }
+
     </style>
 </head>
+
 <body>
+
     <!-- Header -->
     <header>
         <nav>
@@ -134,9 +183,24 @@
 
     <!-- Main content -->
     <main>
-        {% block content %}
-        <!-- Dashboard or Profile content will go here -->
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
+
+    <!-- ============================
+         AI ASSISTANT BUTTON
+    ============================ -->
+
+    <a href="{% url 'ai_summary:dashboard' %}"
+       class="ai-assistant {% if security_alert_count > 0 %}danger{% endif %}"
+       title="AI Assistant">
+
+        <i class="fa-solid fa-robot"></i>
+
+        {% if unread_ai_notifications > 0 %}
+            <span class="ai-badge">{{ unread_ai_notifications }}</span>
+        {% endif %}
+
+    </a>
+
 </body>
 </html>

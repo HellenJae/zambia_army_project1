@@ -1,4 +1,7 @@
 # accounts/views.py
+
+from ai_security.models import SuspiciousActivity
+from ai_security.detector import detect_failed_logins
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from .forms import CustomUserCreationForm
@@ -14,6 +17,7 @@ from dashboard.views import (
     admin_dashboard
 
 )
+from ai_security.detector import detect_failed_logins
 
 
 
@@ -48,51 +52,106 @@ def register_view(request):
     
     return render(request, 'accounts/register.html', {'form': form})
 
+
 def login_view(request):
+
     if request.method == "POST":
+
         man_number = request.POST.get('man_number')
         password = request.POST.get('password')
-        
-        # Authenticate using man_number
+
         try:
             user_obj = CustomUser.objects.get(man_number=man_number)
-            user = authenticate(request, username=user_obj.username, password=password)
+
+            user = authenticate(
+                request,
+                username=user_obj.username,
+                password=password
+            )
+
         except CustomUser.DoesNotExist:
             user = None
-        
+            user_obj = None
+
+        # SUCCESSFUL LOGIN
         if user is not None:
+
+            # reset failed attempts
+            request.session['failed_attempts'] = 0
+
             login(request, user)
-            
-            # Redirect based on user role
+
+            # Redirect based on role
             if user.role == 'soldier':
                 return redirect('dashboard_soldier')
+
             elif user.role == 'officer':
                 return redirect('dashboard_officer')
+
             elif user.role == 'commander':
                 return redirect('dashboard_commander')
+
             elif user.role == 'admin':
                 return redirect('dashboard_admin')
+
+        # FAILED LOGIN
         else:
-            return render(request, 'accounts/login.html', {'error': 'Invalid man number or password'})
+
+            failed_attempts = request.session.get('failed_attempts', 0)
+            failed_attempts += 1
+
+            request.session['failed_attempts'] = failed_attempts
+
+            # AI SECURITY DETECTION
+            if user_obj:
+                detect_failed_logins(user_obj, failed_attempts)
+
+            return render(
+                request,
+                'accounts/login.html',
+                {
+                    'error': 'Invalid man number or password'
+                }
+            )
 
     return render(request, 'accounts/login.html')
+
 
 def logout_view(request):
     logout(request)
     return redirect('login')
 
-
 @login_required
 def dashboard(request):
+
     user = request.user
+
+    # SECURITY ALERT COUNT
+    security_alert_count = SuspiciousActivity.objects.filter(
+        resolved=False
+    ).count()
+
     context = {
-        'user': user,  # make sure user is passed
+        'user': user,
+        'security_alert_count': security_alert_count,
     }
 
+    # COMMANDER DASHBOARD
     if user.role == 'commander':
-        soldiers_count = CustomUser.objects.filter(commander=user).count()
-        active_missions_count = Mission.objects.filter(commander=user, status='active').count()
-        unread_messages_count = Message.objects.filter(recipient=user, read=False).count()
+
+        soldiers_count = CustomUser.objects.filter(
+            commander=user
+        ).count()
+
+        active_missions_count = Mission.objects.filter(
+            commander=user,
+            status='active'
+        ).count()
+
+        unread_messages_count = Message.objects.filter(
+            recipient=user,
+            read=False
+        ).count()
 
         context.update({
             'role': 'commander',
@@ -101,10 +160,22 @@ def dashboard(request):
             'unread_messages_count': unread_messages_count,
         })
 
+    # OFFICER DASHBOARD
     elif user.role == 'officer':
-        missions_count = Mission.objects.filter(officer=user).count()
-        completed_missions_count = Mission.objects.filter(officer=user, status='completed').count()
-        unread_messages_count = Message.objects.filter(recipient=user, read=False).count()
+
+        missions_count = Mission.objects.filter(
+            officer=user
+        ).count()
+
+        completed_missions_count = Mission.objects.filter(
+            officer=user,
+            status='completed'
+        ).count()
+
+        unread_messages_count = Message.objects.filter(
+            recipient=user,
+            read=False
+        ).count()
 
         context.update({
             'role': 'officer',
@@ -113,10 +184,22 @@ def dashboard(request):
             'unread_messages_count': unread_messages_count,
         })
 
+    # SOLDIER DASHBOARD
     elif user.role == 'soldier':
-        missions_count = Mission.objects.filter(soldiers=user).count()
-        completed_missions_count = Mission.objects.filter(soldiers=user, status='completed').count()
-        unread_messages_count = Message.objects.filter(recipient=user, read=False).count()
+
+        missions_count = Mission.objects.filter(
+            soldiers=user
+        ).count()
+
+        completed_missions_count = Mission.objects.filter(
+            soldiers=user,
+            status='completed'
+        ).count()
+
+        unread_messages_count = Message.objects.filter(
+            recipient=user,
+            read=False
+        ).count()
 
         context.update({
             'role': 'soldier',
@@ -125,4 +208,9 @@ def dashboard(request):
             'unread_messages_count': unread_messages_count,
         })
 
-    return render(request, 'dashboard.html', context)
+    return render(
+        request,
+        'dashboard.html',
+        context
+    )
+

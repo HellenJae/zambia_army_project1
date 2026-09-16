@@ -1,0 +1,49 @@
+<h2>🤖 Orion AI Command Assistant</h2>
+
+
+<div class="card">
+
+<p>
+    Ask Orion about missions, messages, security,
+    personnel or announcements.
+</p>
+
+
+<form method="post">
+
+{% csrf_token %}
+
+
+<input 
+type="text"
+name="question"
+placeholder="Ask Orion AI..."
+style="width:80%;padding:12px;"
+>
+
+
+<button type="submit">
+Ask
+</button>
+
+
+</form>
+
+
+</div>
+
+
+
+{% if answer %}
+
+<div class="card">
+
+<h3>Orion Response</h3>
+
+<pre>
+{{ answer }}
+</pre>
+
+</div>
+
+{% endif %}

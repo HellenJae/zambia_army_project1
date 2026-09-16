@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
 
         # Our apps
     'accounts',
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'main',
     'dashboard',
+    'ai_security',
+    'ai_summary',
 
 
 
